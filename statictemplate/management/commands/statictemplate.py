@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from contextlib import contextmanager, nested
+from optparse import make_option
+
 from django.conf import settings
 try:
     from django.conf.urls.defaults import patterns, url, include
@@ -56,9 +58,23 @@ def make_static(template):
 
 
 class Command(BaseCommand):
+    option_list = BaseCommand.option_list + (
+        make_option(
+            '--output', '-o',
+            action='store',
+            dest='output',
+            default=None,
+            help='Output to a file',
+        ),
+    )
+
     def handle(self, template, **options):
         output = make_static(template)
-        self.stdout.write(output)
+        if options['output'] is not None:
+            with open(options['output'], 'w') as fp:
+                fp.write(output)
+        else:
+            self.stdout.write(output)
 
 
 def render(request):

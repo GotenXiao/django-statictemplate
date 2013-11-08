@@ -5,7 +5,9 @@ from django.http import HttpResponseRedirect
 from django.core.management import call_command
 from django.template.base import TemplateDoesNotExist
 from django.template.loader import BaseLoader
+import os
 from statictemplate.management.commands.statictemplate import make_static
+from tempfile import mkstemp
 import unittest
 
 
@@ -49,3 +51,12 @@ class StaticTemplateTests(unittest.TestCase):
         output = make_static('simple')
         self.assertEqual(output, 'headsimple')
         self.assertEqual(settings.MIDDLEWARE_CLASSES, middleware)
+
+    def test_output_option(self):
+        fd, filename = mkstemp()
+        fp = os.fdopen(fd)
+        call_command('statictemplate', 'simple', output=filename)
+        output = fp.read()
+        fp.close()
+        os.unlink(filename)
+        self.assertEqual(output, 'headsimple')
